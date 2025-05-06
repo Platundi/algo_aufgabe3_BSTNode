@@ -34,7 +34,7 @@ public class Main {
         }
 
         System.out.println(bst.height());
-        System.out.println(bst.isValidBST());
+        System.out.println(bst.isBST());
 
         for (int i = 0; i < n; i++) {
             if (i % 2 != 0) {
@@ -42,9 +42,9 @@ public class Main {
             }
         }
         System.out.println(bst.height());
-        System.out.println(bst.isValidBST());
+        System.out.println(bst.isBST());
 
-        bst.hurtBST();
-        System.out.println(bst.isValidBST());
+        bst.hurtBST(1000,1223);
+        System.out.println(bst.isBST());
     }
 }

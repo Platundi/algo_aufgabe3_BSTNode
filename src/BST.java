@@ -1,6 +1,7 @@
 /* Quellen:
  * https://www.geeksforgeeks.org/binary-search-tree-set-1-search-and-insertion/
- * https://www.geeksforgeeks.org/binary-search-tree-set-3-iterative-delete/ */
+ * https://www.geeksforgeeks.org/binary-search-tree-set-3-iterative-delete/
+ * https://www.geeksforgeeks.org/insertion-in-binary-search-tree/ */
 
 public class BST {
     private BSTNode root;
@@ -10,23 +11,31 @@ public class BST {
     } // Konstruktor
 
     public void insert(int key, String val) {
-        root = insert(root, key, val);
+        root = insert(root, key, val, null);
     }
 
-    private BSTNode insert(BSTNode node, int key, String val) {
-        if (node == null)
-            return new BSTNode(key, val);
+    private BSTNode insert(BSTNode node, int key, String val, BSTNode parent) {
+        if (node == null) {
+            BSTNode newNode = new BSTNode(key, val);
+            newNode.parent = parent;
+            return newNode;
+        }
 
         if (key < node.key)
-            node.left = insert(node.left, key, val);
+            node.left = insert(node.left, key, val, node);
         else if (key > node.key)
-            node.right = insert(node.right, key, val);
+            node.right = insert(node.right, key, val, node);
         return node;
     }
 
 
-    public BSTNode search(int key) {
-        return search(root, key);
+    public String search(int key) {
+        BSTNode result = search(root, key);
+        if(result != null) {
+            return result.val;
+        }
+        // Wenn nicht gefunden
+        return null;
     }
 
     private BSTNode search(BSTNode node, int key) {
@@ -41,7 +50,6 @@ public class BST {
         }
     }
 
-
     // Returns height which is the number of edges along the longest path from the root node down to the farthest leaf node.
     public int height() {
         return height(root);
@@ -55,31 +63,24 @@ public class BST {
         return Math.max(lHeight, rHeight) + 1;
     }
 
-    public boolean isValidBST() {
-        /* {Integer.MIN_VALUE}: kleinstmöglicher Wert, damit erster Knoten immer grösser ist
-         * warum array: um referenz im rekursiven aufruf zu übergeben. Primitiver Datentyp int übergibt nur eine Kopie.
-         * Datentyp Integer geht nicht, weil dieser Immutable ist, Wert kann icht direkt verändert werden */
-        int[] prev = {Integer.MIN_VALUE};
-        return inorder(root, prev);
+    // Helper function to check if a tree is BST within a given range
+    private boolean isBSTUtil(BSTNode node, BSTNode min, BSTNode max) {
+        if (node == null) return true;
+
+        // If the current node's data is not in the valid range, return false
+        if ((min != null && node.key <= min.key) || (max != null && node.key >= max.key)) return false;
+
+        if (node.left != null && node.left.parent != node) return false;
+        if (node.right != null && node.right.parent != node) return false;
+
+        // Recursively check the left and right subtrees with updated ranges
+        return isBSTUtil(node.left, min, node) &&
+                isBSTUtil(node.right, node, max);
     }
 
-    private boolean inorder(BSTNode node, int[] prev) {
-        if (node == null)
-            return true;
-
-        // Recursively check the left subtree
-        if (!inorder(node.left, prev))
-            return false;
-
-        // Check the current node key against the previous key
-        if (prev[0] >= node.key)
-            return false;
-
-        // Update the previous value to the current node's value
-        prev[0] = node.key;
-
-        // Recursively check the right subtree
-        return inorder(node.right, prev);
+    // Function to check if the entire binary tree is a BST
+    public boolean isBST() {
+        return isBSTUtil(root, null, null);
     }
 
     public void remove(int key) {
@@ -97,19 +98,24 @@ public class BST {
 
         if (current == null) return; // Schlüssel nicht gefunden
 
-        // Fall 1: Node hat maximal ein Kind
+        // Fall 1: max. ein Kind
         if (current.left == null || current.right == null) {
             BSTNode child = (current.left != null) ? current.left : current.right;
 
+            if (child != null)
+                child.parent = parent;
+
             if (parent == null) {
-                root = child; // Wir löschen den Root-Knoten
+                root = child;
+                if (root != null) root.parent = null;
             } else if (parent.left == current) {
                 parent.left = child;
             } else {
                 parent.right = child;
             }
+
         } else {
-            // Fall 2: Node hat zwei Kinder → Nachfolger finden
+            // Fall 2: zwei Kinder → Nachfolger finden
             BSTNode nextParent = current;
             BSTNode next = current.right;
 
@@ -121,15 +127,21 @@ public class BST {
             current.key = next.key;
             current.val = next.val;
 
-            // Lösche Nachfolger-Knoten rekursiv
+            // Entferne Nachfolger
+            BSTNode replacement = next.right;
+
+            if (replacement != null)
+                replacement.parent = nextParent;
+
             if (nextParent.left == next) {
-                nextParent.left = next.right;
+                nextParent.left = replacement;
             } else {
-                nextParent.right = next.right;
+                nextParent.right = replacement;
             }
         }
     }
-    public void hurtBST() {
-        root.left.key = 9999;
+
+    public void hurtBST(int key, int wert) {
+        search(root, key).key = wert;
     }
 }
